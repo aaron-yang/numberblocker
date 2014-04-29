@@ -105,28 +105,27 @@ public class MainActivity extends Activity {
 		@Override
 		public View getView(int position, View convertView, ViewGroup parent) {
 			// TODO Auto-generated method stub
-			View view;
 			ViewHolder holder;
 			if(convertView == null){
-				view = View.inflate(MainActivity.this, R.layout.number_item, null);
+				convertView = View.inflate(MainActivity.this, R.layout.number_item, null);
 				holder = new ViewHolder();
-				holder.tv_number = (TextView)view.findViewById(R.id.number);
-				holder.tv_mode = (TextView) view.findViewById(R.id.mode);
+				holder.tv_number = (TextView)convertView.findViewById(R.id.number);
+				holder.tv_mode = (TextView) convertView.findViewById(R.id.mode);
+				convertView.setTag(holder);
 			}else{
-				view = convertView;
-				holder = (ViewHolder) view.getTag();
+				holder = (ViewHolder) convertView.getTag();
 			}
 			BlockNumber blockNumber = numbers.get(position);
 			holder.tv_number.setText(blockNumber.getBlocknumber());
 			int mode = blockNumber.getMode();
 			if(mode == 0){
-				holder.tv_mode.setText("µç»°À¹½Ø");
+				holder.tv_mode.setText("ç”µè¯æ‹¦æˆª");
 			}else if(mode == 1){
-				holder.tv_mode.setText("¶ÌĞÅÀ¹½Ø");
+				holder.tv_mode.setText("çŸ­ä¿¡æ‹¦æˆª");
 			}else{
-				holder.tv_mode.setText("È«²¿À¹½Ø");
+				holder.tv_mode.setText("å…¨éƒ¨æ‹¦æˆª");
 			}
-			return view;
+			return convertView;
 		}
 		
 	}
@@ -146,7 +145,7 @@ public class MainActivity extends Activity {
 		final CheckBox cb_sms = (CheckBox) dialogview
 				.findViewById(R.id.cb_block_sms);
 		builder.setView(dialogview);
-		builder.setPositiveButton("Ìí¼Ó", new DialogInterface.OnClickListener(){
+		builder.setPositiveButton("æ·»åŠ ", new DialogInterface.OnClickListener(){
 
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
@@ -154,13 +153,13 @@ public class MainActivity extends Activity {
 				String numberText = numberET.getText().toString().trim();
 				BlockNumber blockNumber = new BlockNumber();
 				if(TextUtils.isEmpty(numberText) || (!cb_phone.isChecked() && !cb_sms.isChecked()) ){
-					Toast.makeText(getApplicationContext(), "ºÅÂë»òÕßÀ¹½ØÄ£Ê½²»ÄÜÎª¿Õ", Toast.LENGTH_LONG).show();
+					Toast.makeText(getApplicationContext(), "å·ç æˆ–è€…æ‹¦æˆªæ¨¡å¼ä¸èƒ½ä¸ºç©º", Toast.LENGTH_LONG).show();
 					return;
 				}else{
 					boolean result = false;
 					blockNumber.setBlocknumber(numberText);
 					if(dao.find(numberText)){
-						Toast.makeText(getApplicationContext(), "¸ÃºÅÂëÒÑÔÚºÚÃûµ¥ÖĞ,ÎŞ·¨ÖØ¸´Ìí¼Ó", Toast.LENGTH_LONG).show();
+						Toast.makeText(getApplicationContext(), "è¯¥å·ç å·²åœ¨é»‘åå•ä¸­,æ— æ³•é‡å¤æ·»åŠ ", Toast.LENGTH_LONG).show();
 						return;
 					}else{
 						if (cb_phone.isChecked() && cb_sms.isChecked()) {
@@ -183,7 +182,7 @@ public class MainActivity extends Activity {
 			}
 			
 		});
-		builder.setNegativeButton("È¡Ïû", new DialogInterface.OnClickListener() {
+		builder.setNegativeButton("å–æ¶ˆ", new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int which) {
 
 			}
