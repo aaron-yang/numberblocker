@@ -32,8 +32,8 @@ public class BlockNumberDao {
 	} 
 	
 	public int findNumMode(String number){
-		// À¹½ØÄ£Ê½ÓÐ3ÖÐ 0
-		//0À¹½Ø¶ÌÐÅ  1 À¹½Øµç»°   2 À¹½ØÁ½¸ö    -1Ã»ÓÐ±ê¼ÇÀ¹½Ø
+		// ï¿½ï¿½ï¿½ï¿½Ä£Ê½ï¿½ï¿½3ï¿½ï¿½ 0
+		//0ï¿½ï¿½ï¿½Ø¶ï¿½ï¿½ï¿½  1 ï¿½ï¿½ï¿½Øµç»°   2 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½    -1Ã»ï¿½Ð±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		int mode = -1;
 		SQLiteDatabase db = helper.getWritableDatabase();
 		if(db.isOpen()){
@@ -62,7 +62,7 @@ public class BlockNumberDao {
 	public void delete(String number){
 		SQLiteDatabase db = helper.getWritableDatabase();
 		if(db.isOpen()){
-			db.execSQL("delete blocknumber where number= ?", new String[]{number});
+			db.execSQL("delete from blocknumber where number=?", new String[]{number});
 			db.close();
 		}
 	}
@@ -70,7 +70,7 @@ public class BlockNumberDao {
 	public void update(String oldnumber,String newnumber,String mode){
 		SQLiteDatabase db = helper.getWritableDatabase();
 		if(db.isOpen()){
-			db.execSQL("update blocknumber set number=?,mode=? where number= ?", new Object[]{newnumber,mode,oldnumber});
+			db.execSQL("update blocknumber set number=?,mode=? where number=?", new Object[]{newnumber,mode,oldnumber});
 			db.close();
 		}
 	}

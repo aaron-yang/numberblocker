@@ -10,9 +10,14 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.text.TextUtils;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -80,6 +85,7 @@ public class MainActivity extends Activity {
 				showAddDialog();
 			}
 		});
+		registerForContextMenu(blockNumberList);
 	}
 	
 	private class BlockNumberAdapter extends BaseAdapter{
@@ -119,11 +125,11 @@ public class MainActivity extends Activity {
 			holder.tv_number.setText(blockNumber.getBlocknumber());
 			int mode = blockNumber.getMode();
 			if(mode == 0){
-				holder.tv_mode.setText("电话拦截");
+				holder.tv_mode.setText("block SMS");
 			}else if(mode == 1){
-				holder.tv_mode.setText("短信拦截");
+				holder.tv_mode.setText("block phone");
 			}else{
-				holder.tv_mode.setText("全部拦截");
+				holder.tv_mode.setText("block SMS and phone");
 			}
 			return convertView;
 		}
@@ -145,7 +151,7 @@ public class MainActivity extends Activity {
 		final CheckBox cb_sms = (CheckBox) dialogview
 				.findViewById(R.id.cb_block_sms);
 		builder.setView(dialogview);
-		builder.setPositiveButton("添加", new DialogInterface.OnClickListener(){
+		builder.setPositiveButton("Add", new DialogInterface.OnClickListener(){
 
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
@@ -153,13 +159,13 @@ public class MainActivity extends Activity {
 				String numberText = numberET.getText().toString().trim();
 				BlockNumber blockNumber = new BlockNumber();
 				if(TextUtils.isEmpty(numberText) || (!cb_phone.isChecked() && !cb_sms.isChecked()) ){
-					Toast.makeText(getApplicationContext(), "号码或者拦截模式不能为空", Toast.LENGTH_LONG).show();
+					Toast.makeText(getApplicationContext(), "Number or mode should no be empty!", Toast.LENGTH_LONG).show();
 					return;
 				}else{
 					boolean result = false;
 					blockNumber.setBlocknumber(numberText);
 					if(dao.find(numberText)){
-						Toast.makeText(getApplicationContext(), "该号码已在黑名单中,无法重复添加", Toast.LENGTH_LONG).show();
+						Toast.makeText(getApplicationContext(), "Number already in block number list!", Toast.LENGTH_LONG).show();
 						return;
 					}else{
 						if (cb_phone.isChecked() && cb_sms.isChecked()) {
@@ -182,7 +188,7 @@ public class MainActivity extends Activity {
 			}
 			
 		});
-		builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+		builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int which) {
 
 			}
@@ -190,4 +196,110 @@ public class MainActivity extends Activity {
 		builder.create().show();
 	}
 
+	@Override
+	public void onCreateContextMenu(ContextMenu menu, View v,
+			ContextMenuInfo menuInfo) {
+		// TODO Auto-generated method stub
+		super.onCreateContextMenu(menu, v, menuInfo);
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.block_number_menu, menu);
+	}
+
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {
+		// TODO Auto-generated method stub
+		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item
+				.getMenuInfo();
+		int position = (int) info.id; 
+		int menuId = item.getItemId();
+		switch(menuId){
+		case R.id.item_delete:
+			deletBlockNumber(position);
+			return true;
+		case R.id.item_update:
+			updateBlockNumber(position);
+			return true;
+		default:
+				return super.onContextItemSelected(item);
+		}
+	}
+	
+	private void deletBlockNumber(int position){
+		String blockNumber = numbers.get(position).getBlocknumber();
+		dao.delete(blockNumber);
+		numbers.remove(numbers.get(position));
+		adapter.notifyDataSetChanged();
+	}
+	
+	private void updateBlockNumber(final int position){
+		AlertDialog.Builder builder = new Builder(this);
+		View dialogview = LayoutInflater.from(this).inflate(R.layout.add_block_number, null);
+		final EditText numberET = (EditText) dialogview
+				.findViewById(R.id.add_number);
+		final CheckBox cb_phone = (CheckBox) dialogview
+				.findViewById(R.id.cb_block_phone);
+		final CheckBox cb_sms = (CheckBox) dialogview
+				.findViewById(R.id.cb_block_sms);
+		final TextView titleTv = (TextView) dialogview.findViewById(R.id.title);
+		titleTv.setText("Edit");
+		numberET.setText(numbers.get(position).getBlocknumber());
+		if(numbers.get(position).getMode() == 2){
+			cb_phone.setChecked(true);
+			cb_sms.setChecked(true);
+		}else if(numbers.get(position).getMode() == 1){
+			cb_phone.setChecked(true);
+		}else{
+			cb_sms.setChecked(true);
+		}
+		builder.setView(dialogview);
+		builder.setPositiveButton("Update", new DialogInterface.OnClickListener(){
+
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				// TODO Auto-generated method stub
+				String numberText = numberET.getText().toString().trim();
+				if(TextUtils.isEmpty(numberText) || (!cb_phone.isChecked() && !cb_sms.isChecked()) ){
+					Toast.makeText(getApplicationContext(), "Number or mode should no be empty!", Toast.LENGTH_LONG).show();
+					return;
+				}else{
+					if(!dao.find(numberText)){
+						Toast.makeText(getApplicationContext(), "The number you want to update is not exsiting", Toast.LENGTH_LONG).show();
+						return;
+					}else{
+						if (cb_phone.isChecked() && cb_sms.isChecked()) {
+							dao.update(numberText, numberText, "2");
+							BlockNumber blockNumber = (BlockNumber) blockNumberList
+									.getItemAtPosition(position);
+							blockNumber.setMode(2);
+							blockNumber.setBlocknumber(numberText);
+							adapter.notifyDataSetChanged();;
+						}else if(cb_phone.isChecked()){
+							dao.update(numberText, numberText, "1");
+							BlockNumber blockNumber = (BlockNumber) blockNumberList
+									.getItemAtPosition(position);
+							blockNumber.setMode(1);
+							blockNumber.setBlocknumber(numberText);
+							adapter.notifyDataSetChanged();;
+						}else{
+							dao.update(numberText, numberText, "0");
+							BlockNumber blockNumber = (BlockNumber) blockNumberList
+									.getItemAtPosition(position);
+							blockNumber.setMode(0);
+							blockNumber.setBlocknumber(numberText);
+							adapter.notifyDataSetChanged();;
+						}
+					}
+				}
+				
+			}
+			
+		});
+		builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int which) {
+
+			}
+		});
+		builder.create().show();
+	}
+	
 }
